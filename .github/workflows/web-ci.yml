@@ -1,0 +1,54 @@
+
+name: Web CI
+
+on:
+  push:
+    branches:
+      - develop
+
+jobs:
+  build:
+    name: Build and Generate Artifact
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Descargar el código del repositorio
+      - name: Checkout repository
+        uses: actions/checkout@v6
+
+      # 2. Configurar Node.js
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: '26.13.1'
+          cache: npm
+
+      # 3. Instalar dependencias
+      - name: Install dependencies
+        run: npm ci
+
+      # 4. Validar estructura del proyecto
+      - name: Validate project structure
+        run: |
+          test -f package.json
+          test -f package-lock.json
+          echo "Project structure validated"
+
+      # 5. Compilar proyecto React
+      - name: Build React application
+        run: npm run build
+
+      # 6. Verificar directorio de compilación
+      - name: Validate build output
+        run: |
+          test -d dist
+          echo "Build completed successfully"
+
+      # 7. Publicar artefacto
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: web-build
+          path: dist/
+          if-no-files-found: error
+          retention-days: 7
